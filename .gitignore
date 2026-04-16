@@ -1,0 +1,45 @@
+# Secrets & credentials
+.env
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Data artifacts (sensitive logs & models)
+*.csv
+*.npy
+*.pkl
+*.parquet
+*.xlsx
+model_backups/
+anomaly_results.csv
+logs_dataset.csv
+detected_anomalies.csv
+features.npy
+features.csv
+system.log
+scheduler.out
+scheduler.pid
+
+# Editor/IDE swap files
+*.swp
+*.swo
+.DS_Store
+.vscode/
+.idea/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Local runtime artifacts
+last_run.txt
+upload_anomalies.py.swp
