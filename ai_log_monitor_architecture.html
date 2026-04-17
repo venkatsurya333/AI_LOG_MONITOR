@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Log Monitor - System Architecture</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0c0c0d;
+            --bg-card: #161617;
+            --bg-card-hover: #1e1e1f;
+            --border-glow: #2a2a2c;
+            
+            --color-blue: #3b82f6;
+            --color-orange: #f59e0b;
+            --color-green: #10b981;
+            --color-purple: #8b5cf6;
+            --color-cyan: #06b6d4;
+            --color-grey: #6b7280;
+            
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-tertiary: #6b7280;
+            
+            --font-main: 'Outfit', sans-serif;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            padding: 2rem 1rem;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            border: 1px solid var(--border-glow);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--text-tertiary);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Layer Styles */
+        .layer {
+            background: rgba(22, 22, 23, 0.5);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+
+        .layer-header {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-glow);
+        }
+
+        .layer-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .layer-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .layer-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .layer-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Cards Interaction */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            padding: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--text-tertiary);
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-content {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .card-tag {
+            align-self: flex-start;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Separators */
+        .separator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0 2rem;
+            position: relative;
+        }
+
+        .separator-line {
+            height: 1px;
+            background: var(--border-glow);
+            flex: 1;
+        }
+
+        .separator-text {
+            padding: 0 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        .scroll-down {
+            display: flex;
+            justify-content: center;
+            margin-top: -1rem;
+            margin-bottom: 2rem;
+        }
+
+        .arrow-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .arrow-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+            background: var(--bg-card-hover);
+        }
+
+        /* Detail Panel */
+        #detail-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 600px;
+            background: #1c1c1e;
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 2rem;
+            z-index: 1000;
+            box-shadow: 0 30px 60px -12px rgba(0,0,0,0.8);
+            display: none;
+            animation: modalFade 0.3s ease-out;
+        }
+
+        @keyframes modalFade {
+            from { opacity: 0; transform: translate(-50%, -45%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 999;
+            display: none;
+            backdrop-filter: blur(4px);
+        }
+
+        .detail-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--color-blue);
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .detail-key {
+            min-width: 120px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .detail-val {
+            color: var(--text-secondary);
+        }
+
+        .flow-container {
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .flow-step {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        /* Color Badges */
+        .badge-1 { background: rgba(59, 130, 246, 0.2); color: var(--color-blue); }
+        .badge-2 { background: rgba(245, 158, 11, 0.2); color: var(--color-orange); }
+        .badge-3 { background: rgba(16, 185, 129, 0.2); color: var(--color-green); }
+        .badge-4 { background: rgba(139, 92, 246, 0.2); color: var(--color-purple); }
+        .badge-5 { background: rgba(6, 182, 212, 0.2); color: var(--color-cyan); }
+        .badge-6 { background: rgba(107, 114, 128, 0.2); color: var(--color-grey); }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .layer-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .layer-desc { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--color-blue)">23</div>
+            <div class="stat-label">Python modules</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--color-green)">106K+</div>
+            <div class="stat-label">Logs indexed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--color-purple)">99</div>
+            <div class="stat-label">Anomalies found</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--color-orange)">15s</div>
+            <div class="stat-label">Detection lag</div>
+        </div>
+    </div>
+
+    <div class="layer">
+        <div class="layer-header">
+            <div class="layer-header-left">
+                <span class="layer-badge badge-1">Layer 1</span>
+                <span class="layer-title">Log ingestion</span>
+            </div>
+            <div class="layer-desc">Collect system events</div>
+        </div>
+        <div class="cards-grid">
+            <div class="card" onclick="show('syslog')">
+                <div class="card-title">System logs</div>
+                <div class="card-content">/var/log/syslog, auth.log, kern.log — all activity on the Ubuntu VM</div>
+                <div class="card-tag">Linux</div>
+            </div>
+            <div class="card" onclick="show('filebeat')">
+                <div class="card-title">Filebeat agent</div>
+                <div class="card-content">Watches log files, ships new lines to Elasticsearch every ~30s</div>
+                <div class="card-tag" style="color: var(--color-blue)">Elastic</div>
+            </div>
+            <div class="card" onclick="show('esraw')">
+                <div class="card-title">Elasticsearch raw index</div>
+                <div class="card-content">.ds-filebeat-* — 106,000+ log documents stored with @timestamp</div>
+                <div class="card-tag" style="color: var(--color-blue)">Elasticsearch</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="separator">
+        <div class="separator-line"></div>
+        <div class="separator-text">fetch_logs.py pulls new events every cycle</div>
+        <div class="separator-line"></div>
+    </div>
+
+    <div class="layer">
+        <div class="layer-header">
+            <div class="layer-header-left">
+                <span class="layer-badge badge-2">Layer 2</span>
+                <span class="layer-title">Python data pipeline</span>
+            </div>
+            <div class="layer-desc">Automated by scheduler.py every 15–300s</div>
+        </div>
+        <div class="cards-grid">
+            <div class="card" onclick="show('fetch')">
+                <div class="card-title">fetch_logs.py</div>
+                <div class="card-content">Incremental fetch using timestamp watermark. Extracts clean message text.</div>
+                <div class="card-tag" style="color: var(--color-green)">Python</div>
+            </div>
+            <div class="card" onclick="show('feat')">
+                <div class="card-title">feature_engineering.py</div>
+                <div class="card-content">Builds 110 features: text stats, time features, message frequency, TF-IDF NLP</div>
+                <div class="card-tag" style="color: var(--color-purple)">scikit-learn</div>
+            </div>
+            <div class="card" onclick="show('predict')">
+                <div class="card-title">predict.py</div>
+                <div class="card-content">Isolation Forest scores each log. Assigns CRITICAL / HIGH / MEDIUM / LOW severity</div>
+                <div class="card-tag" style="color: var(--color-purple)">ML model</div>
+            </div>
+            <div class="card" onclick="show('upload')">
+                <div class="card-title">upload.py</div>
+                <div class="card-content">Deduplicates via MD5 hash, uploads anomalies to ai-log-anomalies index</div>
+                <div class="card-tag" style="color: var(--color-blue)">Elasticsearch</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-down">
+        <div class="arrow-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+        </div>
+    </div>
+
+    <div class="layer">
+        <div class="layer-header">
+            <div class="layer-header-left">
+                <span class="layer-badge badge-3">Layer 3</span>
+                <span class="layer-title">ML engine</span>
+            </div>
+            <div class="layer-desc">Unsupervised anomaly detection — no labelled data needed</div>
+        </div>
+        <div class="cards-grid">
+            <div class="card" onclick="show('iforest')">
+                <div class="card-title">Isolation Forest</div>
+                <div class="card-content">200 trees, 2% contamination. Trained on 1,992 logs. Scores each new log 0–1.</div>
+                <div class="card-tag" style="color: var(--color-purple)">Unsupervised ML</div>
+            </div>
+            <div class="card" onclick="show('tfidf')">
+                <div class="card-title">TF-IDF vectorizer</div>
+                <div class="card-content">100 NLP features from log message text. Captures error keywords, patterns.</div>
+                <div class="card-tag" style="color: var(--color-blue)">NLP</div>
+            </div>
+            <div class="card" onclick="show('kmeans')">
+                <div class="card-title">KMeans clustering</div>
+                <div class="card-content">Groups anomalies into 5 root cause clusters. Identifies dominant error patterns.</div>
+                <div class="card-tag" style="color: var(--color-green)">clustering.py</div>
+            </div>
+            <div class="card" onclick="show('trend')">
+                <div class="card-title">Trend analysis</div>
+                <div class="card-content">Hourly / daily anomaly counts. Detects Increasing / Decreasing / Stable trend.</div>
+                <div class="card-tag" style="color: var(--color-green)">trend_analysis.py</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="separator">
+        <div class="separator-line"></div>
+        <div class="separator-text">results feed AI assistant + alerts + Kibana</div>
+        <div class="separator-line"></div>
+    </div>
+
+    <div class="layer">
+        <div class="layer-header">
+            <div class="layer-header-left">
+                <span class="layer-badge badge-4">Layer 4</span>
+                <span class="layer-title">AI intelligence layer</span>
+            </div>
+            <div class="layer-desc">Natural language analysis + alerting</div>
+        </div>
+        <div class="cards-grid">
+            <div class="card" onclick="show('gemini')">
+                <div class="card-title">Gemini AI assistant</div>
+                <div class="card-content">Gemini 2.5 Flash. Structured SRE output: Issue, Cause, Severity, Trend, Action.</div>
+                <div class="card-tag" style="color: var(--color-orange)">Google Gemini API</div>
+            </div>
+            <div class="card" onclick="show('memory')">
+                <div class="card-title">Session memory</div>
+                <div class="card-content">Remembers last 3 queries. Context includes trend insights and cluster summaries.</div>
+                <div class="card-tag" style="color: var(--color-green)">ai_assistant.py</div>
+            </div>
+            <div class="card" onclick="show('alerts')">
+                <div class="card-title">Smart alerts</div>
+                <div class="card-content">Telegram bot sends CRITICAL/HIGH alerts with severity, score, timestamp. Rate-limited.</div>
+                <div class="card-tag" style="color: var(--color-cyan)">Telegram API</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-down">
+        <div class="arrow-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+        </div>
+    </div>
+
+    <div class="layer">
+        <div class="layer-header">
+            <div class="layer-header-left">
+                <span class="layer-badge badge-5">Layer 5</span>
+                <span class="layer-title">Output and visualisation</span>
+            </div>
+            <div class="layer-desc">Human-readable results</div>
+        </div>
+        <div class="cards-grid">
+            <div class="card" onclick="show('kibana')">
+                <div class="card-title">Kibana dashboard</div>
+                <div class="card-content">Live charts: severity breakdown, hourly heatmap, anomaly timeline, message table.</div>
+                <div class="card-tag" style="color: var(--color-blue)">Kibana</div>
+            </div>
+            <div class="card" onclick="show('report')">
+                <div class="card-title">HTML daily report</div>
+                <div class="card-content">Self-contained HTML report: metrics, heatmap, top anomalies, cluster cards.</div>
+                <div class="card-tag" style="color: var(--color-green)">report.py</div>
+            </div>
+            <div class="card" onclick="show('evaluate')">
+                <div class="card-title">Model evaluation</div>
+                <div class="card-content">Score distribution, weak-label F1, feature discriminability ranking.</div>
+                <div class="card-tag" style="color: var(--color-green)">evaluate.py</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layer" style="margin-bottom: 4rem;">
+        <div class="layer-header">
+            <div class="layer-header-left">
+                <span class="layer-badge badge-6">Layer 6</span>
+                <span class="layer-title">Operations and model management</span>
+            </div>
+            <div class="layer-desc">Keep the system running and models fresh</div>
+        </div>
+        <div class="cards-grid">
+            <div class="card" onclick="show('scheduler')">
+                <div class="card-title">scheduler.py</div>
+                <div class="card-content">Loop-based automation. No cron needed. Configurable interval. Auto-backoff on failure.</div>
+                <div class="card-tag" style="color: var(--color-green)">Python</div>
+            </div>
+            <div class="card" onclick="show('retrain')">
+                <div class="card-title">retrain.py</div>
+                <div class="card-content">Versioned retraining with backup, validation (0.5–15% rate), auto rollback.</div>
+                <div class="card-tag" style="color: var(--color-green)">Python</div>
+            </div>
+            <div class="card" onclick="show('health')">
+                <div class="card-title">health_check.py</div>
+                <div class="card-content">Pre-flight checks: ES connectivity, model files, disk space, API keys, Telegram.</div>
+                <div class="card-tag" style="color: var(--color-green)">Python</div>
+            </div>
+            <div class="card" onclick="show('config')">
+                <div class="card-title">config.py + .env</div>
+                <div class="card-content">All credentials and settings in .env. No hardcoded secrets anywhere in code.</div>
+                <div class="card-tag" style="color: var(--color-grey)">Security</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="hide()"></div>
+<div id="detail-panel"></div>
+
+<script>
+const DATA = {
+  syslog:{title:"System logs — the raw source",rows:[["Location","/var/log/syslog, auth.log, kern.log, *.log"],["Contents","SSH events, kernel messages, service starts/stops, auth failures"],["Volume","12,000+ new lines per day on a typical Ubuntu VM"],["Format","Syslog format: timestamp hostname process[pid]: message"]],flow:["syslog files","Filebeat reads","ships to ES"]},
+  filebeat:{title:"Filebeat — the log shipping agent",rows:[["Role","Watches log files, detects new lines, ships to Elasticsearch"],["Config","/etc/filebeat/filebeat.yml — output.elasticsearch block"],["Interval","Ships events in batches every ~30 seconds"],["Output","Writes to .ds-filebeat-* data stream index"],["Fixed issue","Was pointing to Logstash (port 5044) — redirected to Elasticsearch directly"]],flow:["reads /var/log/*","batches events","sends to port 9200"]},
+  esraw:{title:"Elasticsearch raw index — .ds-filebeat-*",rows:[["Index pattern",".ds-filebeat-8.x.x-YYYY.MM.DD-NNNNNN"],["Documents","106,752+ log records (as of Apr 13)"],["Key fields","@timestamp, message, host.name, log.file.path"],["Query method","Range query on @timestamp using last_run.txt watermark"],["Auth","Basic auth: elastic / password, SSL with verify_certs=false"]],flow:["filebeat writes","106K docs","fetch_logs.py reads"]},
+  fetch:{title:"fetch_logs.py — incremental log fetcher",rows:[["Strategy","Reads last_run.txt for watermark timestamp, fetches only new logs"],["Query","ES range query: @timestamp >= last_run AND <= now"],["Batch size","FETCH_SIZE=2000 logs per run (configurable in .env)"],["Message extract","Tries message → log.original → event.original fields"],["Noise filter","Skips Filebeat internal monitoring JSON (log.level, log.logger)"],["Syslog strip","Regex removes timestamp+hostname prefix from raw messages"],["Output","Saves clean logs_dataset.csv with @timestamp, message, host columns"]],flow:["reads ES","strips noise","saves CSV"]},
+  feat:{title:"feature_engineering.py — 110 features built",rows:[["Basic features","msg_length, word_count, uppercase_ratio, digit_count"],["Keyword flags","contains_error, contains_login, contains_warning (binary 0/1)"],["Time features","hour (0–23), day_of_week (0–6) from @timestamp"],["Frequency","message_frequency — how often this exact message appears"],["NLP features","TF-IDF on message text: 100 features, sublinear_tf, min_df=2"],["Vectorizer","Fitted on training data, saved as vectorizer.pkl for reuse"],["Output","features.npy — numpy array shape (N, 110)"]],flow:["loads CSV","extracts 110 features","saves features.npy"]},
+  predict:{title:"predict.py — anomaly detection and severity",rows:[["Model","Isolation Forest loaded from model.pkl"],["Input","features.npy — same 110-feature matrix as training"],["Output column","anomaly: +1 = normal, -1 = anomaly"],["Scoring","decision_function() gives raw score, normalized to 0–1 scale"],["Severity logic","score < -0.25 → CRITICAL, < -0.15 or error_flag → HIGH, < -0.05 or login_flag → MEDIUM, warning_flag → LOW, else INFO"],["Results","anomaly_results.csv with anomaly, anomaly_score, anomaly_score_norm, severity"]],flow:["loads model","scores 1992 logs","99 anomalies found"]},
+  upload:{title:"upload.py — deduplicated ES upload",rows:[["Deduplication","MD5 hash of timestamp+message → document ID. Re-running never creates duplicates."],["Target index","ai-log-anomalies — separate from raw Filebeat index"],["Fields stored","timestamp, message, severity, anomaly_score, anomaly_score_norm, all feature flags"],["Alert trigger","Fires Telegram alert for CRITICAL and HIGH severity events"],["Rate limiting","ALERT_COOLDOWN_SECONDS=60 — max one alert per severity per minute"],["Result","Kibana reads from ai-log-anomalies, shows clean anomaly data"]],flow:["reads results CSV","deduplicates","uploads to ES","fires alerts"]},
+  iforest:{title:"Isolation Forest — the ML core",rows:[["Algorithm","Unsupervised anomaly detection — no labelled data needed"],["How it works","Randomly isolates points. Anomalies are isolated faster (fewer splits)"],["Parameters","n_estimators=200 trees, contamination=0.05 (5% expected anomalies)"],["Training data","1,992 log records from 60-day window"],["Decision function","Returns negative score for anomalies, near-zero for normal logs"],["Why it works","Log anomalies (SSH attacks, OOM kills) are rare and structurally different"]],flow:["110 features in","isolation score out","threshold applied"]},
+  tfidf:{title:"TF-IDF vectorizer — NLP features",rows:[["What it does","Converts log message text into 100 numerical features"],["TF-IDF meaning","Term Frequency × Inverse Document Frequency — rare words score higher"],["max_features","100 most informative words kept (memory optimised for Lubuntu VM)"],["sublinear_tf","Dampens very frequent terms to avoid domination"],["Key captures","'failed', 'error', 'critical', 'kill', 'refused', 'timeout' etc."],["Saved as","vectorizer.pkl — must be loaded for inference, re-fitted only on retrain"]],flow:["message text in","tokenise + score","100 numeric features out"]},
+  kmeans:{title:"KMeans clustering — root cause grouping",rows:[["Purpose","Groups anomalies into thematic clusters to identify root causes"],["k=5 clusters","e.g. SSH brute force, disk warnings, OOM kills, timeouts, network errors"],["Input","TF-IDF matrix of anomalous messages only"],["Output","cluster_id per anomaly, top 8 keywords per cluster, dominant severity"],["Used by","ai_assistant.py injects cluster summaries into every Gemini prompt"],["File","clustering.py"]],flow:["anomaly messages","KMeans k=5","5 root cause groups"]},
+  trend:{title:"trend_analysis.py — time-based pattern detection",rows:[["Hourly counts","Groups anomalies by hour (0–23) — finds peak attack hours"],["Daily counts","Groups by weekday — finds most anomalous day of week"],["Trend direction","Linear regression slope on hourly series → Increasing/Decreasing/Stable"],["Off-hours flag","Anomalies between 00:00–06:00 flagged as suspicious (unauthorized access)"],["Used by","ai_assistant.py includes trend insights in every AI prompt"],["Output","Dict with hourly_counts, daily_counts, peak_hour, trend_direction, insights list"]],flow:["anomaly results","group by time","detect trend direction"]},
+  gemini:{title:"Gemini AI assistant — natural language SRE",rows:[["Model","gemini-2.5-flash via Google AI Studio API"],["Prompt structure","SRE persona + trend insights + cluster summaries + relevant logs + user query"],["Structured output","Issue / Cause / Severity / Trend (Increasing/Stable/Decreasing) / Recommended Action"],["Log retrieval","Multi-match ES query on ai-log-anomalies for relevant context"],["Fallback","If no match, fetches 5 most recent anomalies as context"],["File","ai_assistant.py"]],flow:["user asks","ES fetches context","Gemini analyses","structured answer"]},
+  memory:{title:"Session memory — conversational context",rows:[["Memory window","Last 3 user queries stored in chat_history list"],["How it works","Previous questions added to prompt as 'Previous Questions' section"],["Why it helps","Gemini can see if user is investigating the same incident across questions"],["Trend context","analyze_trends() called once at session start, injected into every prompt"],["Cluster context","cluster_anomalies() called once at session start, summaries always in context"],["Reset","Memory clears when you restart ai_assistant.py"]],flow:["user asks","add to history","last 3 in next prompt"]},
+  alerts:{title:"alerts.py — smart Telegram alerting",rows:[["Trigger","CRITICAL and HIGH severity anomalies only — avoids noise"],["Rate limiting","_last_sent dict tracks last alert per severity. 60s cooldown enforced."],["Message format","Severity emoji, severity label, score (0–1), timestamp, first 400 chars of message"],["Bot setup","@BotFather creates bot token. getUpdates API returns chat ID."],["Failure handling","RequestException caught and logged — never crashes the pipeline"],["Config",".env: TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, ALERT_COOLDOWN_SECONDS"]],flow:["anomaly uploaded","severity CRITICAL/HIGH","rate check","Telegram message sent"]},
+  kibana:{title:"Kibana — live visualisation",rows:[["URL","http://localhost:5601"],["Data view","ai-log-anomalies — separate from raw Filebeat data"],["Key fields","timestamp, message, severity, anomaly_score_norm, error_flag"],["Useful panels","Severity pie chart, hourly bar chart, anomaly count over time, message table"],["KQL filter","NOT message: *log.level* to hide Filebeat internal monitoring noise"],["Auto-refresh","Set to 30 seconds for near-realtime demo"]],flow:["ES ai-log-anomalies","Kibana reads","dashboard renders"]},
+  report:{title:"report.py — automated HTML report",rows:[["Output","Single self-contained HTML file: report_YYYYMMDD_HHMMSS.html"],["Contents","Summary metrics, severity bars, 24h heatmap, top 20 anomalies table, cluster cards"],["Dark themed","Dark background, color-coded severity badges, monospace log display"],["Trend section","Uses trend_analysis.py output — insights bullet list"],["Cluster section","Uses clustering.py output — keyword chips, dominant severity, sample messages"],["Run with","python3 report.py  or  make report"]],flow:["anomaly_results.csv","trend + clusters","self-contained HTML"]},
+  evaluate:{title:"evaluate.py — model quality report",rows:[["Anomaly rate","Total logs, anomaly count, rate (%) — validates contamination setting"],["Score distribution","ASCII histogram of raw decision_function scores for anomalies"],["Severity breakdown","CRITICAL/HIGH/MEDIUM/LOW counts with bar chart"],["Weak-label metrics","Uses keyword flags as proxy labels → precision, recall, F1 estimates"],["Feature importance","Mean |anomaly - normal| per feature — shows which features discriminate most"],["Run with","python3 evaluate.py  or  make evaluate"]],flow:["anomaly_results.csv","compute metrics","CLI report printed"]},
+  scheduler:{title:"scheduler.py — loop-based automation",rows:[["Replaces","cron — no system-level config needed, works inside virtualenv"],["Interval","SCHEDULE_INTERVAL_SECONDS=300 in .env (default 5 min), --interval flag overrides"],["Pipeline","fetch_logs → feature_engineering → predict → upload, every cycle"],["Failure handling","Consecutive failure counter. After 5 failures: 3x backoff, counter resets."],["Memory","gc.collect() after each cycle — critical for Lubuntu VM (low RAM)"],["Start","python3 scheduler.py  or  make scheduler"]],flow:["wake up","run full pipeline","sleep N seconds","repeat forever"]},
+  retrain:{title:"retrain.py — versioned model management",rows:[["Before retrain","Backs up model.pkl + vectorizer.pkl to model_backups/YYYYMMDD_HHMMSS/"],["Retrain steps","fetch → feature_engineering (fit=True) → train_model → validate"],["Validation","Anomaly rate must be 0.5%–15%. Outside range → automatic rollback."],["Rollback","python3 retrain.py rollback → restores latest backup in seconds"],["List backups","python3 retrain.py list → shows all versions with sizes"],["Pruning","Keeps last 5 backups only — old ones deleted automatically"]],flow:["backup current model","fetch + train new","validate rate","keep or rollback"]},
+  health:{title:"health_check.py — pre-flight diagnostics",rows:[["Checks","8 categories: .env, Python packages, ES connection, index existence, model files, disk, Gemini key, Telegram bot"],["Output","Green tick or red cross per check with detail message"],["Critical vs warn","Missing model is WARN (expected first run). ES failure is CRITICAL (blocks pipeline)."],["Exit code","Exits 0 if all critical checks pass, 1 if any fail"],["Use in scripts","python3 health_check.py && python3 scheduler.py — safe startup pattern"],["Run with","python3 health_check.py  or  make health"]],flow:["check 8 systems","report pass/fail","exit 0 or 1"]},
+  config:{title:"config.py + .env — centralised configuration",rows:[["Pattern","All settings in .env file. config.py reads them via python-dotenv."],["No hardcoding","Zero secrets in any Python file — all come from environment variables"],["Key settings","ES_HOST, ES_USER, ES_PASS, GEMINI_API_KEY, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID"],["ML tuning","IF_CONTAMINATION, IF_N_ESTIMATORS, TFIDF_MAX_FEATURES, KMEANS_N_CLUSTERS"],["Scheduling","SCHEDULE_INTERVAL_SECONDS, ALERT_COOLDOWN_SECONDS, FETCH_SIZE"],["Security",".env in .gitignore — never committed. chmod 600 .env for file permissions."]]},
+};
+
+function hide() {
+    document.getElementById('detail-panel').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+}
+
+function show(key){
+  const d=DATA[key]; if(!d) return;
+  const rows = d.rows.map(r => `
+    <div class="detail-row">
+        <span class="detail-key">${r[0]}</span>
+        <span class="detail-val">${r[1]}</span>
+    </div>`).join('');
+    
+  const flow = d.flow ? `
+    <div class="flow-container">
+        ${d.flow.map((f, i) => `
+            <span class="flow-step">${f}</span>
+            ${i < d.flow.length - 1 ? '<span style="color:var(--text-tertiary)">→</span>' : ''}
+        `).join('')}
+    </div>` : '';
+
+  const p = document.getElementById('detail-panel');
+  const o = document.getElementById('overlay');
+  
+  o.style.display = 'block';
+  p.style.display = 'block';
+  
+  p.innerHTML = `
+    <button class="close-btn" onclick="hide()">✕ Close</button>
+    <div class="detail-title">${d.title}</div>
+    <div style="margin-bottom: 2rem;">${rows}</div>
+    ${flow}
+  `;
+}
+</script>
+
+</body>
+</html>
