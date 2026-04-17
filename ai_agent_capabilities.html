@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Capabilities</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep:       #0c0c0d;
+            --bg-card:       #161617;
+            --bg-card-hover: #1d1d1f;
+            --bg-overlay:    #1c1c1e;
+            --border:        #2a2a2c;
+            --border-hover:  #3f3f41;
+
+            --blue:   #3b82f6;
+            --green:  #10b981;
+            --orange: #f59e0b;
+            --purple: #8b5cf6;
+            --red:    #ef4444;
+            --cyan:   #06b6d4;
+            --yellow: #eab308;
+            --grey:   #6b7280;
+
+            --text-1: #f3f4f6;
+            --text-2: #9ca3af;
+            --text-3: #6b7280;
+
+            --font:  'Outfit', sans-serif;
+            --mono:  'JetBrains Mono', monospace;
+            --r-lg:  16px;
+            --r-md:  12px;
+            --r-sm:   8px;
+            --ease:  all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-deep);
+            color: var(--text-1);
+            font-family: var(--font);
+            padding: 2rem 1.25rem 4rem;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 1020px; margin: 0 auto; }
+
+        /* ── Hero header ─────────────────────────────────────── */
+        .hero {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+            flex-shrink: 0;
+        }
+
+        .hero-text {
+            font-size: 0.85rem;
+            color: var(--text-2);
+        }
+
+        .hero-text strong { color: var(--text-1); font-weight: 600; }
+
+        /* ── Section blocks ──────────────────────────────────── */
+        .section { margin-bottom: 2.5rem; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .section-badge {
+            padding: 0.2rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        .section-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* badge colours per section */
+        .sb-detect  { background: rgba(239,68,68,.18);  color: var(--red);    }
+        .sb-analyse { background: rgba(59,130,246,.18); color: var(--blue);   }
+        .sb-action  { background: rgba(16,185,129,.18); color: var(--green);  }
+
+        /* ── Card grid ───────────────────────────────────────── */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.1rem;
+        }
+
+        .cat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            transition: var(--ease);
+            cursor: default;
+        }
+
+        .cat-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px -10px rgba(0,0,0,.6);
+        }
+
+        .cat-header {
+            padding: 1.1rem 1.25rem 0.9rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cat-icon { font-size: 1.4rem; margin-bottom: 0.45rem; line-height: 1; }
+
+        .cat-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-1);
+            margin-bottom: 0.2rem;
+        }
+
+        .cat-sub {
+            font-size: 0.82rem;
+            color: var(--text-3);
+        }
+
+        .cat-body { padding: 0.9rem 1.25rem 1.1rem; }
+
+        .q-item {
+            position: relative;
+            font-size: 0.82rem;
+            color: var(--text-2);
+            padding: 0.35rem 0;
+            border-bottom: 1px solid var(--border);
+            line-height: 1.45;
+            padding-left: 0.9rem;
+        }
+
+        .q-item::before {
+            content: '"';
+            position: absolute;
+            left: 0;
+            color: var(--text-3);
+            font-size: 0.9rem;
+        }
+
+        .q-item::after {
+            content: '"';
+            color: var(--text-3);
+            font-size: 0.9rem;
+        }
+
+        .q-item:last-of-type { border-bottom: none; }
+
+        /* ── Status badges ───────────────────────────────────── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-top: 0.75rem;
+            padding: 0.22rem 0.65rem;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .badge::before { content: '●'; font-size: 0.55rem; }
+
+        .b-yes {
+            background: rgba(16,185,129,.15);
+            color: var(--green);
+            border: 1px solid rgba(16,185,129,.25);
+        }
+
+        .b-partial {
+            background: rgba(234,179,8,.15);
+            color: var(--yellow);
+            border: 1px solid rgba(234,179,8,.25);
+        }
+
+        .b-no {
+            background: rgba(239,68,68,.15);
+            color: var(--red);
+            border: 1px solid rgba(239,68,68,.25);
+        }
+
+        /* ── Demo Q&A box ────────────────────────────────────── */
+        .demo-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .demo-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-1);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .demo-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px; height: 1rem;
+            background: var(--blue);
+            border-radius: 2px;
+        }
+
+        .qa-pair {
+            margin-bottom: 1.25rem;
+            padding: 1rem 1.1rem;
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+        }
+
+        .qa-pair:last-child { margin-bottom: 0; }
+
+        .q-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-3);
+            margin-bottom: 0.3rem;
+        }
+
+        .q-text {
+            font-size: 0.95rem;
+            color: var(--text-1);
+            font-style: italic;
+            margin-bottom: 0.75rem;
+        }
+
+        .a-text {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--text-2);
+            line-height: 1.75;
+            background: rgba(0,0,0,.35);
+            border-radius: var(--r-sm);
+            padding: 0.75rem 1rem;
+            white-space: pre-wrap;
+            border-left: 2px solid var(--blue);
+        }
+
+        /* ── Limitations box ─────────────────────────────────── */
+        .limit-box {
+            background: rgba(245,158,11,.05);
+            border: 1px solid rgba(245,158,11,.25);
+            border-radius: var(--r-lg);
+            padding: 1.25rem 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .limit-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--orange);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .limit-title::before { content: '⚠'; font-size: 0.9rem; }
+
+        .limit-item {
+            font-size: 0.83rem;
+            color: var(--text-2);
+            padding: 0.3rem 0;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .limit-item::before {
+            content: '×';
+            position: absolute;
+            left: 0;
+            color: var(--orange);
+            font-weight: 700;
+        }
+
+        /* ── Try-it buttons ──────────────────────────────────── */
+        .try-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1.5rem;
+        }
+
+        .try-btn {
+            font-family: var(--font);
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.45rem 1rem;
+            background: transparent;
+            color: var(--text-2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--ease);
+        }
+
+        .try-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-1);
+            border-color: var(--border-hover);
+        }
+
+        /* ── Responsive ──────────────────────────────────────── */
+        @media (max-width: 640px) {
+            .cards { grid-template-columns: 1fr; }
+            body { padding: 1.25rem 1rem 3rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="hero-dot"></div>
+        <div class="hero-text">
+            <strong>Synthesized comprehensive overview</strong> of agent capabilities
+        </div>
+    </div>
+
+    <!-- ── Section 1: Detection ──────────────────────────── -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-badge sb-detect">Detection &amp; Investigation</span>
+            <div class="section-line"></div>
+        </div>
+        <div class="cards">
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">🔴</div>
+                    <div class="cat-title">Critical incident detection</div>
+                    <div class="cat-sub">What is broken right now</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">show me recent critical anomalies</div>
+                    <div class="q-item">what is the most severe issue right now</div>
+                    <div class="q-item">are there any critical alerts today</div>
+                    <div class="q-item">show all CRITICAL severity logs</div>
+                    <span class="badge b-yes">Fully supported</span>
+                </div>
+            </div>
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">🔐</div>
+                    <div class="cat-title">Security &amp; auth analysis</div>
+                    <div class="cat-sub">SSH, login, access patterns</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">are there any SSH brute force attacks</div>
+                    <div class="q-item">show failed login attempts</div>
+                    <div class="q-item">any suspicious root login activity</div>
+                    <div class="q-item">are there unauthorized access attempts</div>
+                    <span class="badge b-yes">Fully supported</span>
+                </div>
+            </div>
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">💾</div>
+                    <div class="cat-title">System health issues</div>
+                    <div class="cat-sub">Memory, disk, CPU problems</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">are there any OOM kills happening</div>
+                    <div class="q-item">show disk space warnings</div>
+                    <div class="q-item">any service crashes today</div>
+                    <div class="q-item">what processes are being killed</div>
+                    <span class="badge b-yes">Fully supported</span>
+                </div>
+            </div>
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">🌐</div>
+                    <div class="cat-title">Network &amp; firewall</div>
+                    <div class="cat-sub">Port scans, blocked traffic</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">are there any port scans detected</div>
+                    <div class="q-item">show blocked firewall connections</div>
+                    <div class="q-item">any unusual network activity</div>
+                    <div class="q-item">what external IPs are suspicious</div>
+                    <span class="badge b-yes">Fully supported</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Section 2: Analysis ───────────────────────────── -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-badge sb-analyse">Analysis &amp; Pattern Recognition</span>
+            <div class="section-line"></div>
+        </div>
+        <div class="cards">
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">📈</div>
+                    <div class="cat-title">Trend analysis</div>
+                    <div class="cat-sub">Are things getting worse</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">is the anomaly trend increasing</div>
+                    <div class="q-item">what hour has the most anomalies</div>
+                    <div class="q-item">which day of the week is worst</div>
+                    <div class="q-item">are there off-hours attacks happening</div>
+                    <span class="badge b-yes">Fully supported</span>
+                </div>
+            </div>
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">🔍</div>
+                    <div class="cat-title">Root cause analysis</div>
+                    <div class="cat-sub">Why is this happening</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">what is causing the most alerts</div>
+                    <div class="q-item">group anomalies by type</div>
+                    <div class="q-item">what are the main error patterns</div>
+                    <div class="q-item">explain the top anomaly cluster</div>
+                    <span class="badge b-yes">Fully supported</span>
+                </div>
+            </div>
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">📊</div>
+                    <div class="cat-title">Severity breakdown</div>
+                    <div class="cat-sub">How bad and how many</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">how many HIGH severity events today</div>
+                    <div class="q-item">summarise all anomalies by severity</div>
+                    <div class="q-item">what percentage are critical</div>
+                    <div class="q-item">show anomaly score distribution</div>
+                    <span class="badge b-yes">Fully supported</span>
+                </div>
+            </div>
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">🧠</div>
+                    <div class="cat-title">Multi-turn investigation</div>
+                    <div class="cat-sub">Follow-up questions with memory</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">tell me more about those SSH failures</div>
+                    <div class="q-item">which IP was responsible for that</div>
+                    <div class="q-item">is this related to what I asked before</div>
+                    <div class="q-item">how is this different from yesterday</div>
+                    <span class="badge b-partial">Last 3 queries remembered</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Section 3: Actions ────────────────────────────── -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-badge sb-action">Recommendations &amp; Actions</span>
+            <div class="section-line"></div>
+        </div>
+        <div class="cards">
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">🛠️</div>
+                    <div class="cat-title">Remediation steps</div>
+                    <div class="cat-sub">What should I do about it</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">how do I fix the SSH brute force issue</div>
+                    <div class="q-item">what action should I take for OOM kills</div>
+                    <div class="q-item">how to stop the port scanning attack</div>
+                    <div class="q-item">what commands will fix this</div>
+                    <span class="badge b-yes">3-step action plan given</span>
+                </div>
+            </div>
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">⚠️</div>
+                    <div class="cat-title">Impact assessment</div>
+                    <div class="cat-sub">How serious is this</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">how serious are these anomalies</div>
+                    <div class="q-item">should I be worried about this pattern</div>
+                    <div class="q-item">is this a real attack or noise</div>
+                    <div class="q-item">what is the risk level right now</div>
+                    <span class="badge b-yes">Fully supported</span>
+                </div>
+            </div>
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">📋</div>
+                    <div class="cat-title">Summary reports</div>
+                    <div class="cat-sub">Give me the full picture</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">give me a full system health summary</div>
+                    <div class="q-item">summarise everything from today</div>
+                    <div class="q-item">what happened in the last hour</div>
+                    <div class="q-item">write an incident report for this</div>
+                    <span class="badge b-yes">Structured format always</span>
+                </div>
+            </div>
+
+            <div class="cat-card">
+                <div class="cat-header">
+                    <div class="cat-icon">🔮</div>
+                    <div class="cat-title">Prediction &amp; prevention</div>
+                    <div class="cat-sub">What might happen next</div>
+                </div>
+                <div class="cat-body">
+                    <div class="q-item">will anomalies increase tonight</div>
+                    <div class="q-item">what should I monitor closely</div>
+                    <div class="q-item">what preventive steps should I take</div>
+                    <div class="q-item">is the system at risk of crashing</div>
+                    <span class="badge b-partial">Based on trend data</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Demo Q&A ──────────────────────────────────────── -->
+    <div class="demo-box">
+        <div class="demo-title">Example real answers your agent gives</div>
+
+        <div class="qa-pair">
+            <div class="q-label">You ask</div>
+            <div class="q-text">Are there any SSH brute force attacks right now?</div>
+            <div class="q-label" style="margin-top:0.6rem">Agent answers</div>
+            <div class="a-text">Issue: Active SSH brute force from 2 external IPs targeting root account
+Cause: 41 failed login attempts in 10-minute window — credential stuffing pattern
+Severity: CRITICAL — anomaly_score_norm=0.96, 3 events below -0.25 threshold
+Trend: Increasing — peak at 02:00, off-hours activity flagged
+Action: 1) Block IPs via ufw deny from 203.0.113.47  2) Install fail2ban  3) Disable password SSH auth</div>
+        </div>
+
+        <div class="qa-pair">
+            <div class="q-label">You ask</div>
+            <div class="q-text">What is the anomaly trend today?</div>
+            <div class="q-label" style="margin-top:0.6rem">Agent answers</div>
+            <div class="a-text">Issue: Anomaly rate increasing — 99 detected in last cycle, up from 63
+Cause: Off-hours spike between 01:00–03:00 driven by auth failures and OOM kills
+Severity: HIGH — 63 CRITICAL + 228 HIGH events in dataset
+Trend: Increasing — linear slope positive, Tuesday historically worst day
+Action: 1) Check auth.log now  2) Set Kibana alert for CRITICAL  3) Schedule retrain with new data</div>
+        </div>
+    </div>
+
+    <!-- ── Limitations ───────────────────────────────────── -->
+    <div class="limit-box">
+        <div class="limit-title">What it cannot answer (current limitations)</div>
+        <div class="limit-item">Questions about logs older than FETCH_WINDOW_DEFAULT (set to now-2d)</div>
+        <div class="limit-item">Future predictions beyond what trend data shows</div>
+        <div class="limit-item">Questions about other machines — only monitors your Lubuntu VM</div>
+        <div class="limit-item">Application-level errors (no app logs configured in Filebeat yet)</div>
+        <div class="limit-item">Database query logs, Docker container logs (not in filebeat.yml paths)</div>
+        <div class="limit-item">More than last 3 questions remembered — memory resets on restart</div>
+    </div>
+
+    <!-- ── Try-it buttons ────────────────────────────────── -->
+    <div class="try-row">
+        <button class="try-btn" onclick="sendPrompt('show me recent critical anomalies')">Try: show critical anomalies ↗</button>
+        <button class="try-btn" onclick="sendPrompt('are there any SSH brute force attacks')">Try: SSH brute force check ↗</button>
+        <button class="try-btn" onclick="sendPrompt('what is the anomaly trend right now')">Try: anomaly trend ↗</button>
+        <button class="try-btn" onclick="sendPrompt('give me a full system health summary')">Try: full health summary ↗</button>
+    </div>
+
+</div>
+</body>
+</html>
